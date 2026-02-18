@@ -3,7 +3,7 @@
 [![CI](https://github.com/billylui/temporal-cortex-core/actions/workflows/ci.yml/badge.svg)](https://github.com/billylui/temporal-cortex-core/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/truth-engine.svg)](https://crates.io/crates/truth-engine)
 [![npm](https://img.shields.io/npm/v/@temporal-cortex/truth-engine.svg)](https://www.npmjs.com/package/@temporal-cortex/truth-engine)
-[![PyPI](https://img.shields.io/pypi/v/temporal-cortex-toon.svg)](https://pypi.org/project/temporal-cortex-toon/)
+[![PyPI](https://img.shields.io/pypi/v/temporal-cortex-toon.svg?v=0.1.1)](https://pypi.org/project/temporal-cortex-toon/)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 Deterministic calendar computation for AI agents. Merge availability across calendars, expand recurrence rules, detect conflicts, and compress calendar data — all without LLM inference.
