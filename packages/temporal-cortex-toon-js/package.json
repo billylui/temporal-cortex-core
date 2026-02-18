@@ -20,7 +20,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/billylui/temporal-cortex-core.git",
-    "directory": "packages/toon-js"
+    "directory": "packages/temporal-cortex-toon-js"
   },
   "homepage": "https://github.com/billylui/temporal-cortex-core",
   "bugs": {

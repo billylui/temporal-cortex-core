@@ -2,7 +2,7 @@
 //!
 //! Exposes RRULE expansion, conflict detection, and free/busy computation to
 //! JavaScript via `wasm-bindgen`. All complex types are passed as JSON strings,
-//! matching the pattern established by `toon-wasm`.
+//! matching the pattern established by `temporal-cortex-toon-wasm`.
 //!
 //! ## Build process
 //!

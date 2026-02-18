@@ -108,12 +108,12 @@ jobs:
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build toon-wasm
+      - name: Build temporal-cortex-toon-wasm
         run: |
-          cargo build --target wasm32-unknown-unknown -p toon-wasm --release
+          cargo build --target wasm32-unknown-unknown -p temporal-cortex-toon-wasm --release
           wasm-bindgen --target nodejs \
             target/wasm32-unknown-unknown/release/toon_wasm.wasm \
-            --out-dir packages/toon-js/wasm/
+            --out-dir packages/temporal-cortex-toon-js/wasm/
 
       - name: Build truth-engine-wasm
         run: |
@@ -124,13 +124,13 @@ jobs:
 
       - name: Rename CJS bindings for ESM compatibility
         run: |
-          for dir in packages/toon-js/wasm packages/truth-engine-js/wasm; do
+          for dir in packages/temporal-cortex-toon-js/wasm packages/truth-engine-js/wasm; do
             for f in "$dir"/*.js; do
               [ -f "$f" ] && mv "$f" "${f%.js}.cjs"
             done
           done
 
-      - name: Test toon-js
+      - name: Test temporal-cortex-toon-js
         run: pnpm --filter @temporal-cortex/toon test
 
       - name: Test truth-engine-js
@@ -165,20 +165,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Create virtualenv and install tools
-        working-directory: crates/toon-python
+        working-directory: crates/temporal-cortex-toon-python
         run: |
           python -m venv .venv
           source .venv/bin/activate
           pip install maturin pytest
 
       - name: Build and install Python bindings
-        working-directory: crates/toon-python
+        working-directory: crates/temporal-cortex-toon-python
         run: |
           source .venv/bin/activate
           maturin develop
 
       - name: Run Python tests
-        working-directory: crates/toon-python
+        working-directory: crates/temporal-cortex-toon-python
         run: |
           source .venv/bin/activate
           pytest tests/ -v
@@ -271,12 +271,12 @@ jobs:
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build toon-wasm
+      - name: Build temporal-cortex-toon-wasm
         run: |
-          cargo build --target wasm32-unknown-unknown -p toon-wasm --release
+          cargo build --target wasm32-unknown-unknown -p temporal-cortex-toon-wasm --release
           wasm-bindgen --target nodejs \
             target/wasm32-unknown-unknown/release/toon_wasm.wasm \
-            --out-dir packages/toon-js/wasm/
+            --out-dir packages/temporal-cortex-toon-js/wasm/
 
       - name: Build truth-engine-wasm
         run: |
@@ -287,7 +287,7 @@ jobs:
 
       - name: Rename CJS bindings for ESM compatibility
         run: |
-          for dir in packages/toon-js/wasm packages/truth-engine-js/wasm; do
+          for dir in packages/temporal-cortex-toon-js/wasm packages/truth-engine-js/wasm; do
             for f in "$dir"/*.js; do
               [ -f "$f" ] && mv "$f" "${f%.js}.cjs"
             done
@@ -330,7 +330,7 @@ jobs:
         run: pip install maturin
 
       - name: Build and publish to PyPI
-        working-directory: crates/toon-python
+        working-directory: crates/temporal-cortex-toon-python
         run: maturin publish --skip-existing
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}

@@ -2,7 +2,7 @@
 
 WASM-powered TOON (Token-Oriented Object Notation) encoder/decoder for Node.js.
 
-This package wraps the Rust `toon-core` library via WebAssembly, providing near-native performance for TOON encoding and decoding in JavaScript/TypeScript environments.
+This package wraps the Rust `temporal-cortex-toon` library via WebAssembly, providing near-native performance for TOON encoding and decoding in JavaScript/TypeScript environments.
 
 ## Installation
 
@@ -47,15 +47,15 @@ This package requires the WASM artifacts to be built from the Rust crate first:
 # From the monorepo root:
 
 # 1. Build the WASM binary
-cargo build -p toon-wasm --target wasm32-unknown-unknown --release
+cargo build -p temporal-cortex-toon-wasm --target wasm32-unknown-unknown --release
 
 # 2. Generate Node.js bindings
 wasm-bindgen --target nodejs \
-  --out-dir packages/toon-js/wasm/ \
+  --out-dir packages/temporal-cortex-toon-js/wasm/ \
   target/wasm32-unknown-unknown/release/toon_wasm.wasm
 
 # 3. Rename for ESM/CJS compatibility
-mv packages/toon-js/wasm/toon_wasm.js packages/toon-js/wasm/toon_wasm.cjs
+mv packages/temporal-cortex-toon-js/wasm/toon_wasm.js packages/temporal-cortex-toon-js/wasm/toon_wasm.cjs
 
 # 4. Build TypeScript
 pnpm --filter @temporal-cortex/toon build
@@ -69,7 +69,7 @@ pnpm --filter @temporal-cortex/toon test
 ```
 src/index.ts          ← Public API (encode/decode), loads WASM via createRequire
 wasm/toon_wasm.cjs    ← wasm-bindgen generated CommonJS bindings
-wasm/toon_wasm.wasm   ← Compiled WASM binary from toon-core (Rust)
+wasm/toon_wasm.wasm   ← Compiled WASM binary from temporal-cortex-toon (Rust)
 wasm/toon_wasm.d.ts   ← TypeScript type declarations for WASM exports
 ```
 

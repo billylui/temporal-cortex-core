@@ -2,10 +2,10 @@
 * @billylui
 
 # Rust crates
-/crates/toon-core/          @billylui
-/crates/toon-cli/           @billylui
-/crates/toon-wasm/          @billylui
-/crates/toon-python/        @billylui
+/crates/temporal-cortex-toon/          @billylui
+/crates/temporal-cortex-toon-cli/     @billylui
+/crates/temporal-cortex-toon-wasm/    @billylui
+/crates/temporal-cortex-toon-python/  @billylui
 /crates/truth-engine/       @billylui
 /crates/truth-engine-wasm/  @billylui
 

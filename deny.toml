@@ -14,7 +14,7 @@ no-default-features = false
 yanked = "deny"
 unmaintained = "workspace"
 ignore = [
-    # PyO3 0.23.5 PyString::from_object buffer overflow — toon-python does not
+    # PyO3 0.23.5 PyString::from_object buffer overflow — temporal-cortex-toon-python does not
     # call PyString::from_object directly; upgrade to PyO3 0.24+ tracked separately.
     "RUSTSEC-2025-0020",
 ]

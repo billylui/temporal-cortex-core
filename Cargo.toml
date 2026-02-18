@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/toon-core",
-    "crates/toon-cli",
-    "crates/toon-wasm",
-    "crates/toon-python",
+    "crates/temporal-cortex-toon",
+    "crates/temporal-cortex-toon-cli",
+    "crates/temporal-cortex-toon-wasm",
+    "crates/temporal-cortex-toon-python",
     "crates/truth-engine",
     "crates/truth-engine-wasm",
 ]

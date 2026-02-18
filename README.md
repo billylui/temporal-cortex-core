@@ -27,8 +27,8 @@ AI agents scheduling on behalf of humans face a fragmented calendar landscape. A
 | `@temporal-cortex/truth-engine` | `npm i @temporal-cortex/truth-engine` | [README](packages/truth-engine-js/) | JavaScript (WASM) |
 | `temporal-cortex-toon` | `cargo add temporal-cortex-toon` | [docs.rs](https://docs.rs/temporal-cortex-toon) | Rust |
 | `temporal-cortex-toon-cli` | `cargo install temporal-cortex-toon-cli` | [CLI usage](#toon-cli) | CLI |
-| `@temporal-cortex/toon` | `npm i @temporal-cortex/toon` | [README](packages/toon-js/) | JavaScript (WASM) |
-| `temporal-cortex-toon` | `pip install temporal-cortex-toon` | [README](crates/toon-python/) | Python |
+| `@temporal-cortex/toon` | `npm i @temporal-cortex/toon` | [README](packages/temporal-cortex-toon-js/) | JavaScript (WASM) |
+| `temporal-cortex-toon` | `pip install temporal-cortex-toon` | [README](crates/temporal-cortex-toon-python/) | Python |
 
 ## Quick Start
 
@@ -208,7 +208,7 @@ This project follows strict **Test-Driven Development** (Red-Green-Refactor). No
 
 - Rust 1.88+ (1.93 recommended) with `wasm32-unknown-unknown` target
 - Node.js 18+ with pnpm
-- Python 3.12+ (for toon-python bindings)
+- Python 3.12+ (for temporal-cortex-toon-python bindings)
 - `wasm-bindgen-cli` (`cargo install wasm-bindgen-cli`)
 
 ### Running Tests
@@ -228,13 +228,13 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo deny check
 
 # WASM + JavaScript tests
-cargo build -p toon-wasm -p truth-engine-wasm --target wasm32-unknown-unknown --release
-wasm-bindgen --target nodejs target/wasm32-unknown-unknown/release/toon_wasm.wasm --out-dir packages/toon-js/wasm/
+cargo build -p temporal-cortex-toon-wasm -p truth-engine-wasm --target wasm32-unknown-unknown --release
+wasm-bindgen --target nodejs target/wasm32-unknown-unknown/release/toon_wasm.wasm --out-dir packages/temporal-cortex-toon-js/wasm/
 wasm-bindgen --target nodejs target/wasm32-unknown-unknown/release/truth_engine_wasm.wasm --out-dir packages/truth-engine-js/wasm/
 pnpm install && pnpm test
 
 # Python tests
-cd crates/toon-python
+cd crates/temporal-cortex-toon-python
 python3 -m venv .venv && source .venv/bin/activate
 pip install maturin pytest
 maturin develop
@@ -248,13 +248,13 @@ temporal-cortex-core/
 ├── crates/
 │   ├── truth-engine/        # Availability merging + RRULE + conflict + free/busy
 │   ├── truth-engine-wasm/   # WASM bindings for truth-engine
-│   ├── toon-core/           # TOON encoder/decoder + semantic filtering
-│   ├── toon-cli/            # CLI: toon encode | decode | stats | --filter
-│   ├── toon-wasm/           # WASM bindings for toon-core
-│   └── toon-python/         # Python bindings via PyO3
+│   ├── temporal-cortex-toon/           # TOON encoder/decoder + semantic filtering
+│   ├── temporal-cortex-toon-cli/      # CLI: toon encode | decode | stats | --filter
+│   ├── temporal-cortex-toon-wasm/     # WASM bindings for temporal-cortex-toon
+│   └── temporal-cortex-toon-python/   # Python bindings via PyO3
 ├── packages/
-│   ├── truth-engine-js/     # @temporal-cortex/truth-engine (NPM)
-│   └── toon-js/             # @temporal-cortex/toon (NPM)
+│   ├── truth-engine-js/               # @temporal-cortex/truth-engine (NPM)
+│   └── temporal-cortex-toon-js/       # @temporal-cortex/toon (NPM)
 └── scripts/poc/             # Test fixtures
 ```
 
@@ -270,7 +270,7 @@ Think of it as DNS for human time — a resolution layer that maps a person's id
 
 - [ ] Browser/Deno WASM target (currently Node.js only)
 - [ ] TOON streaming encoder for large payloads
-- [ ] `toon-cli` batch processing for directories
+- [ ] `temporal-cortex-toon-cli` batch processing for directories
 - [ ] Additional calendar filter presets (Outlook, Apple Calendar)
 - [ ] Truth Engine: VTODO/VJOURNAL support
 

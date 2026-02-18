@@ -39,7 +39,7 @@ const slots = JSON.parse(freeSlotsJson);
 
 ## API
 
-All functions accept and return JSON strings for complex types, matching the pattern used by `toon-wasm`.
+All functions accept and return JSON strings for complex types, matching the pattern used by `temporal-cortex-toon-wasm`.
 
 ### `expandRRule(rrule, dtstart, durationMinutes, timezone, until?, maxCount?)`
 

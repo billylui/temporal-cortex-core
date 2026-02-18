@@ -1,4 +1,4 @@
-//! # toon-python
+//! # temporal-cortex-toon-python
 //!
 //! Python bindings for the TOON format encoder/decoder and truth-engine,
 //! built with PyO3.

@@ -1,4 +1,4 @@
-//! # toon-core
+//! # temporal-cortex-toon
 //!
 //! Pure-Rust encoder and decoder for **TOON (Token-Oriented Object Notation)** v3.0.
 //!

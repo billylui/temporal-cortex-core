@@ -3,7 +3,7 @@
 **/*.rs.bk
 
 # WASM build artifacts (generated, not committed)
-packages/toon-js/wasm/
+packages/temporal-cortex-toon-js/wasm/
 packages/truth-engine-js/wasm/
 *.wasm
 

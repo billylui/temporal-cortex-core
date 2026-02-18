@@ -18,7 +18,7 @@ Thank you for your interest in contributing! This document provides guidelines f
 - **wasm32-unknown-unknown target** — `rustup target add wasm32-unknown-unknown`
 - **wasm-bindgen-cli** — `cargo install wasm-bindgen-cli`
 - **Node.js 18+** with pnpm — `npm install -g pnpm`
-- **Python 3.12+** (optional, for toon-python)
+- **Python 3.12+** (optional, for temporal-cortex-toon-python)
 
 ### Building
 
@@ -27,7 +27,7 @@ Thank you for your interest in contributing! This document provides guidelines f
 cargo build --workspace
 
 # Build WASM bindings
-cargo build -p toon-wasm -p truth-engine-wasm --target wasm32-unknown-unknown --release
+cargo build -p temporal-cortex-toon-wasm -p truth-engine-wasm --target wasm32-unknown-unknown --release
 
 # Install JS dependencies
 pnpm install

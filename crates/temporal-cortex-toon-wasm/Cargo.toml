@@ -1,5 +1,5 @@
 [package]
-name = "toon-wasm"
+name = "temporal-cortex-toon-wasm"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,8 +9,9 @@ description = "WASM bindings for TOON encoder/decoder"
 publish = false
 
 [lib]
+name = "toon_wasm"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-toon-core = { path = "../toon-core", package = "temporal-cortex-toon" }
+toon-core = { path = "../temporal-cortex-toon", package = "temporal-cortex-toon" }
 wasm-bindgen = { workspace = true }

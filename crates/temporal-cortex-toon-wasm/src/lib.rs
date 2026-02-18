@@ -1,4 +1,4 @@
-//! WASM bindings for toon-core.
+//! WASM bindings for temporal-cortex-toon.
 //!
 //! Exposes `encode` and `decode` as `#[wasm_bindgen]` functions that can be
 //! called from JavaScript/TypeScript. Built with `wasm-bindgen-cli` (not
@@ -7,11 +7,11 @@
 //! ## Build process
 //!
 //! ```sh
-//! cargo build -p toon-wasm --target wasm32-unknown-unknown --release
-//! wasm-bindgen --target nodejs --out-dir packages/toon-js/wasm/ \
+//! cargo build -p temporal-cortex-toon-wasm --target wasm32-unknown-unknown --release
+//! wasm-bindgen --target nodejs --out-dir packages/temporal-cortex-toon-js/wasm/ \
 //!   target/wasm32-unknown-unknown/release/toon_wasm.wasm
 //! # Rename .js → .cjs for ESM compatibility
-//! mv packages/toon-js/wasm/toon_wasm.js packages/toon-js/wasm/toon_wasm.cjs
+//! mv packages/temporal-cortex-toon-js/wasm/toon_wasm.js packages/temporal-cortex-toon-js/wasm/toon_wasm.cjs
 //! ```
 //!
 //! The generated `.cjs` file is loaded by `@temporal-cortex/toon` (the NPM package)

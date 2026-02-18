@@ -5,7 +5,7 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "build:wasm:toon": "cargo build --target wasm32-unknown-unknown -p toon-wasm --release && wasm-bindgen --target nodejs target/wasm32-unknown-unknown/release/toon_wasm.wasm --out-dir packages/toon-js/wasm/",
+    "build:wasm:toon": "cargo build --target wasm32-unknown-unknown -p temporal-cortex-toon-wasm --release && wasm-bindgen --target nodejs target/wasm32-unknown-unknown/release/toon_wasm.wasm --out-dir packages/temporal-cortex-toon-js/wasm/",
     "build:wasm:truth": "cargo build --target wasm32-unknown-unknown -p truth-engine-wasm --release && wasm-bindgen --target nodejs target/wasm32-unknown-unknown/release/truth_engine_wasm.wasm --out-dir packages/truth-engine-js/wasm/"
   },
   "devDependencies": {

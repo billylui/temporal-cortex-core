@@ -19,5 +19,5 @@ pub enum ToonError {
     Encode(String),
 }
 
-/// Convenience alias used throughout toon-core.
+/// Convenience alias used throughout temporal-cortex-toon.
 pub type Result<T> = std::result::Result<T, ToonError>;

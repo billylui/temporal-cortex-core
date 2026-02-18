@@ -72,7 +72,7 @@ Expands an RFC 5545 RRULE into concrete event instances. Returns a JSON string c
 
 ```bash
 # From the crate directory:
-cd crates/toon-python
+cd crates/temporal-cortex-toon-python
 
 # Create a virtualenv and install
 python3 -m venv .venv
@@ -97,7 +97,7 @@ pytest tests/ -v
 - **7 RRULE tests** — daily count, start/end fields, until, max count, weekly, error handling
 
 ```bash
-cd crates/toon-python
+cd crates/temporal-cortex-toon-python
 source .venv/bin/activate
 pytest tests/ -v
 ```
@@ -105,14 +105,14 @@ pytest tests/ -v
 ## Architecture
 
 ```
-src/lib.rs       ← PyO3 #[pyfunction] wrappers around toon-core and truth-engine
+src/lib.rs       ← PyO3 #[pyfunction] wrappers around temporal-cortex-toon and truth-engine
 pyproject.toml   ← maturin build configuration
 tests/           ← pytest test suite
 ```
 
 The Python module (`temporal_cortex_toon`) is a thin wrapper that:
 1. Accepts Python strings
-2. Calls the underlying Rust functions (toon-core encode/decode, truth-engine expand)
+2. Calls the underlying Rust functions (temporal-cortex-toon encode/decode, truth-engine expand)
 3. Maps Rust errors to Python `ValueError` exceptions
 
 ## License

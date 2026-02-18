@@ -1,4 +1,4 @@
-/// TDD RED phase: Semantic filtering tests for toon-core.
+/// TDD RED phase: Semantic filtering tests for temporal-cortex-toon.
 ///
 /// These tests define the expected behavior of the filter module BEFORE
 /// implementation. All tests should FAIL initially (functions return todo!()).

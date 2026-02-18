@@ -1,5 +1,5 @@
 [package]
-name = "toon-python"
+name = "temporal-cortex-toon-python"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -14,7 +14,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { workspace = true, features = ["extension-module"] }
-toon-core = { path = "../toon-core", package = "temporal-cortex-toon" }
+toon-core = { path = "../temporal-cortex-toon", package = "temporal-cortex-toon" }
 truth-engine = { path = "../truth-engine" }
 serde = { workspace = true }
 serde_json = { workspace = true }
