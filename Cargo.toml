@@ -30,7 +30,7 @@ chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.10"
 
 # Calendar rules
-rrule = "0.13"
+rrule = "0.14"
 
 # WASM
 wasm-bindgen = "0.2"
