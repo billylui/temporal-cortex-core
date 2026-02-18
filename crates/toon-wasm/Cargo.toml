@@ -12,5 +12,5 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-toon-core = { path = "../toon-core" }
+toon-core = { path = "../toon-core", package = "temporal-cortex-toon" }
 wasm-bindgen = { workspace = true }

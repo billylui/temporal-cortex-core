@@ -3,7 +3,7 @@
 [![CI](https://github.com/billylui/temporal-cortex-core/actions/workflows/ci.yml/badge.svg)](https://github.com/billylui/temporal-cortex-core/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/truth-engine.svg)](https://crates.io/crates/truth-engine)
 [![npm](https://img.shields.io/npm/v/@temporal-cortex/truth-engine.svg)](https://www.npmjs.com/package/@temporal-cortex/truth-engine)
-[![PyPI](https://img.shields.io/pypi/v/toon-format.svg)](https://pypi.org/project/toon-format/)
+[![PyPI](https://img.shields.io/pypi/v/temporal-cortex-toon.svg)](https://pypi.org/project/temporal-cortex-toon/)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
 
 Deterministic calendar computation for AI agents. Merge availability across calendars, expand recurrence rules, detect conflicts, and compress calendar data — all without LLM inference.
@@ -25,10 +25,10 @@ AI agents scheduling on behalf of humans face a fragmented calendar landscape. A
 |---------|---------|------|----------|
 | `truth-engine` | `cargo add truth-engine` | [docs.rs](https://docs.rs/truth-engine) | Rust |
 | `@temporal-cortex/truth-engine` | `npm i @temporal-cortex/truth-engine` | [README](packages/truth-engine-js/) | JavaScript (WASM) |
-| `toon-core` | `cargo add toon-core` | [docs.rs](https://docs.rs/toon-core) | Rust |
-| `toon-cli` | `cargo install toon-cli` | [CLI usage](#toon-cli) | CLI |
+| `temporal-cortex-toon` | `cargo add temporal-cortex-toon` | [docs.rs](https://docs.rs/temporal-cortex-toon) | Rust |
+| `temporal-cortex-toon-cli` | `cargo install temporal-cortex-toon-cli` | [CLI usage](#toon-cli) | CLI |
 | `@temporal-cortex/toon` | `npm i @temporal-cortex/toon` | [README](packages/toon-js/) | JavaScript (WASM) |
-| `toon-format` | `pip install toon-format` | [README](crates/toon-python/) | Python |
+| `temporal-cortex-toon` | `pip install temporal-cortex-toon` | [README](crates/toon-python/) | Python |
 
 ## Quick Start
 
@@ -119,7 +119,7 @@ const toon = encode('{"summary":"Team Standup","start":"2026-03-16T09:00:00Z"}')
 ### Python
 
 ```python
-from toon_format import encode, decode, expand_rrule, merge_availability
+from temporal_cortex_toon import encode, decode, expand_rrule, merge_availability
 
 # Merge availability
 result = merge_availability(
@@ -179,7 +179,7 @@ Key features: key folding (indentation replaces braces), tabular arrays (CSV-lik
 
 ```bash
 # Install
-cargo install toon-cli
+cargo install temporal-cortex-toon-cli
 
 # Encode JSON to TOON (stdin to stdout)
 echo '{"name":"Alice","age":30}' | toon encode
@@ -219,8 +219,8 @@ cargo test --workspace
 
 # Individual crates
 cargo test -p truth-engine     # availability + expander + conflict + freebusy + proptest
-cargo test -p toon-core        # encoder + decoder + roundtrip + spec + proptest
-cargo test -p toon-cli         # CLI integration tests
+cargo test -p temporal-cortex-toon      # encoder + decoder + roundtrip + spec + proptest
+cargo test -p temporal-cortex-toon-cli  # CLI integration tests
 
 # Code quality
 cargo fmt --check --all

@@ -3,7 +3,7 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "toon-format"
+name = "temporal-cortex-toon"
 version = "0.1.0"
 description = "TOON encoder/decoder and Truth Engine (RRULE expansion, availability merging) for AI calendar agents"
 readme = "README.md"

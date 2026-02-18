@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TOON CLI**: `--filter` and `--filter-preset google` for field stripping
 - **WASM**: `@temporal-cortex/toon` npm package (Node.js WASM bindings)
 - **WASM**: `@temporal-cortex/truth-engine` npm package (Node.js WASM bindings)
-- **Python**: `toon-format` PyPI package (encode, decode, filter_and_encode, expand_rrule, merge_availability)
+- **Python**: `temporal-cortex-toon` PyPI package (encode, decode, filter_and_encode, expand_rrule, merge_availability)
 - **CI**: 4-job pipeline — lint-rust, test-rust, test-wasm, test-python
 - **Release**: Automated publishing to crates.io, npm, and PyPI on version tags
 - **QA**: 446+ Rust tests, 39+ JS tests, 26 Python tests, ~9,000 property-based tests

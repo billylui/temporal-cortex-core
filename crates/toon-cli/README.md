@@ -1,11 +1,11 @@
-# toon-cli
+# temporal-cortex-toon-cli
 
-CLI tool for encoding, decoding, and analyzing [TOON](https://crates.io/crates/toon-core) (Token-Oriented Object Notation) files.
+CLI tool for encoding, decoding, and analyzing [TOON](https://crates.io/crates/temporal-cortex-toon) (Token-Oriented Object Notation) files.
 
 ## Installation
 
 ```bash
-cargo install toon-cli
+cargo install temporal-cortex-toon-cli
 ```
 
 ## Usage

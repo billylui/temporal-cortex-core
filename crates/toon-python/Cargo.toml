@@ -9,12 +9,12 @@ description = "Python bindings for TOON format encoder/decoder and truth-engine"
 publish = false
 
 [lib]
-name = "toon_format"
+name = "temporal_cortex_toon"
 crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { workspace = true, features = ["extension-module"] }
-toon-core = { path = "../toon-core" }
+toon-core = { path = "../toon-core", package = "temporal-cortex-toon" }
 truth-engine = { path = "../truth-engine" }
 serde = { workspace = true }
 serde_json = { workspace = true }

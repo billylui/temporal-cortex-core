@@ -1,4 +1,4 @@
-"""Tests for the toon_format Python bindings.
+"""Tests for the temporal_cortex_toon Python bindings.
 
 TDD RED phase: These tests define the expected behavior of the PyO3 bindings.
 They will fail until the native extension is built and installed.
@@ -7,7 +7,7 @@ They will fail until the native extension is built and installed.
 import json
 import pytest
 
-from toon_format import decode, encode, expand_rrule, filter_and_encode
+from temporal_cortex_toon import decode, encode, expand_rrule, filter_and_encode
 
 
 # ---------------------------------------------------------------------------

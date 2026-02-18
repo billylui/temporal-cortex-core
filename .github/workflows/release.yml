@@ -208,8 +208,8 @@ jobs:
             publish-${{ runner.os }}-cargo-
 
       # Publish in dependency order: leaves first, then dependents
-      - name: Publish toon-core
-        run: cargo publish -p toon-core --allow-dirty
+      - name: Publish temporal-cortex-toon
+        run: cargo publish -p temporal-cortex-toon --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -224,8 +224,8 @@ jobs:
       - name: Wait for crates.io index update
         run: sleep 30
 
-      - name: Publish toon-cli
-        run: cargo publish -p toon-cli --allow-dirty
+      - name: Publish temporal-cortex-toon-cli
+        run: cargo publish -p temporal-cortex-toon-cli --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 

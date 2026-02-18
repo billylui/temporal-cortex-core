@@ -1,17 +1,17 @@
-# toon-format (Python)
+# temporal-cortex-toon (Python)
 
 Python bindings for the TOON format encoder/decoder and truth-engine, built with PyO3 and maturin.
 
 ## Installation
 
 ```bash
-pip install toon-format
+pip install temporal-cortex-toon
 ```
 
 ## Usage
 
 ```python
-from toon_format import encode, decode, filter_and_encode, expand_rrule
+from temporal_cortex_toon import encode, decode, filter_and_encode, expand_rrule
 
 # JSON → TOON
 toon = encode('{"name":"Alice","scores":[95,87,92]}')
@@ -110,7 +110,7 @@ pyproject.toml   ← maturin build configuration
 tests/           ← pytest test suite
 ```
 
-The Python module (`toon_format`) is a thin wrapper that:
+The Python module (`temporal_cortex_toon`) is a thin wrapper that:
 1. Accepts Python strings
 2. Calls the underlying Rust functions (toon-core encode/decode, truth-engine expand)
 3. Maps Rust errors to Python `ValueError` exceptions

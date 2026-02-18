@@ -3,7 +3,7 @@
 //! Python bindings for the TOON format encoder/decoder and truth-engine,
 //! built with PyO3.
 //!
-//! Exposes the following functions to Python as the `toon_format` module:
+//! Exposes the following functions to Python as the `temporal_cortex_toon` module:
 //!
 //! - `encode(json)` -- JSON string -> TOON string
 //! - `decode(toon)` -- TOON string -> JSON string
@@ -280,9 +280,9 @@ fn find_first_free_across(
     }
 }
 
-/// The `toon_format` Python module, implemented in Rust via PyO3.
+/// The `temporal_cortex_toon` Python module, implemented in Rust via PyO3.
 #[pymodule]
-fn toon_format(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn temporal_cortex_toon(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(encode, m)?)?;
     m.add_function(wrap_pyfunction!(decode, m)?)?;
     m.add_function(wrap_pyfunction!(filter_and_encode, m)?)?;

@@ -1,4 +1,4 @@
-# toon-core
+# temporal-cortex-toon
 
 Pure-Rust encoder and decoder for **TOON (Token-Oriented Object Notation)** v3.0.
 
@@ -98,7 +98,7 @@ Key implementation detail: `serde_json` must use the `preserve_order` feature (e
 - **42 roundtrip tests** — `decode(encode(json)) == json` for all value types
 
 ```bash
-cargo test -p toon-core
+cargo test -p temporal-cortex-toon
 ```
 
 ## License

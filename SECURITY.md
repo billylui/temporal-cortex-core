@@ -21,9 +21,9 @@ We will acknowledge your report within 48 hours and aim to release a fix within 
 
 This policy covers the following packages:
 
-- `toon-core` (Rust crate)
-- `toon-cli` (CLI binary)
-- `toon-wasm` / `@temporal-cortex/toon` (WASM/NPM)
-- `toon-format` (Python/PyPI)
+- `temporal-cortex-toon` (Rust crate)
+- `temporal-cortex-toon-cli` (CLI binary)
+- `@temporal-cortex/toon` (WASM/NPM)
+- `temporal-cortex-toon` (Python/PyPI)
 - `truth-engine` (Rust crate)
 - `truth-engine-wasm` / `@temporal-cortex/truth-engine` (WASM/NPM)
