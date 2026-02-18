@@ -27,7 +27,7 @@
     "url": "https://github.com/billylui/temporal-cortex-core/issues"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^25",
     "typescript": "^5",
     "vitest": "^3"
   }
