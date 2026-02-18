@@ -74,6 +74,22 @@ A daily event at 1:30 AM Eastern Time. On November 1, 2026, 1:30 AM occurs twice
 
 `BYSETPOS=-1` with `BYDAY=MO,TU,WE,TH,FR` means "the last weekday." This is NOT "the last Friday." March 31, 2026 is a Tuesday. April 30 is a Thursday. LLMs that default to Friday get 4 of 6 wrong.
 
+### Challenge 4: EXDATE Exclusions
+
+A weekly Tuesday meeting with 3 cancelled dates. There are 6 Tuesdays in the range (Mar 3, 10, 17, 24, 31, Apr 7). Subtract the 3 EXDATEs (Mar 10, 17, 31) to get 3 remaining. LLMs often miscount the total Tuesdays in range or apply the exclusions to the wrong dates.
+
+### Challenge 5: Tri-Weekly COUNT
+
+Every 3rd week means 21-day gaps, not every 3rd day. Starting Jan 5 in Central Time, the sequence crosses month boundaries (Jan 5 -> Jan 26 -> Feb 16 -> Mar 9 -> Mar 30) and the DST spring-forward on March 8 shifts the UTC offset from CST (UTC-6) to CDT (UTC-5) mid-sequence.
+
+### Challenge 6: Cross-Year Boundary
+
+Weekly Sundays starting December 28, 2025. The year boundary (2025 -> 2026) is conceptually simple, but LLMs sometimes skip or duplicate dates near January 1. Europe/London is GMT in winter (UTC+0), so the timezone is trivial -- the trap is purely the year rollover arithmetic.
+
+### Challenge 7: First Monday of Quarter
+
+`BYDAY=1MO` with `FREQ=YEARLY` and `BYMONTH=1,4,7,10` requires a 2026 calendar lookup: Jan 5, Apr 6, Jul 6, Oct 5. LLMs must also handle EST (UTC-5) for January and October vs EDT (UTC-4) for April and July. Getting the dates right but the offsets wrong means 2 of 4 answers are off by an hour.
+
 ### Challenge 8: UNTIL Timezone Boundary
 
 DTSTART is 10 PM Pacific (= 6 AM next day UTC). UNTIL is Jan 15 at 04:59:59 UTC. The Jan 14 local occurrence maps to Jan 15 06:00 UTC, which exceeds UNTIL. Result: 4 occurrences, not 5. The cross-day UTC mapping is the trap.
@@ -82,49 +98,9 @@ DTSTART is 10 PM Pacific (= 6 AM next day UTC). UNTIL is Jan 15 at 04:59:59 UTC.
 
 15 weekdays starting March 2 at 9 AM Eastern Time seems trivial. But DST spring-forward on March 8 means the first 5 days are at 14:00 UTC (EST) and the last 10 are at 13:00 UTC (EDT). LLMs that ignore the mid-sequence offset change get 10 of 15 wrong.
 
-## Blog Post Outline
+### Challenge 10: Monthly on the 29th
 
-**Title:** *Can Your AI Agent Pass the Calendar Test? We Tested LLMs on RFC 5545 -- The Results Are Worse Than You Think*
-
-### 1. Hook (~150 words)
-- The AuthenHallu benchmark's 60% hallucination rate on temporal tasks
-- AI agents are being trusted with calendar operations (booking, scheduling, availability)
-- No public benchmark exists for RRULE expansion specifically
-- We built one: 10 challenges, increasing difficulty, objectively graded
-
-### 2. The Gauntlet (~200 words)
-- Overview of the 10 challenges and their difficulty spectrum
-- What makes each one hard: DST, BYSETPOS, leap years, timezone boundaries
-- These patterns appear in real calendar data every day
-
-### 3. Setup (~150 words)
-- Truth Engine computes ground truth (Rust, RFC 5545 compliant, deterministic)
-- Same prompts sent to each LLM with temperature=0
-- Strict grading: exact UTC datetime match, order-sensitive
-
-### 4. Results (~300 words)
-- Score table per model (pass/fail per challenge)
-- Highlight: which challenges reliably break which models
-- Common pattern: Easy challenges pass, Hard challenges fail across the board
-- The DST challenges are nearly universal failures
-
-### 5. Failure Pattern Analysis (~300 words)
-- **DST blindness**: Models treat UTC offsets as static
-- **Off-by-one counting**: INTERVAL and COUNT interactions confuse sequential reasoning
-- **BYSETPOS confusion**: Models default to common cases (last Friday) instead of computing
-- **Timezone arithmetic errors**: Cross-day UTC conversions trip up even strong models
-
-### 6. The Case for Deterministic Computation (~200 words)
-- Calendar operations are computation, not inference
-- An RRULE has exactly one correct expansion per RFC 5545
-- No amount of model scaling fixes arithmetic -- you need a calculator
-- Truth Engine: deterministic, RFC-compliant, zero hallucination risk
-
-### 7. CTA (~100 words)
-- `pip install temporal-cortex-toon`
-- GitHub: github.com/billylui/temporal-cortex-core
-- Run the gauntlet yourself: `python rrule_gauntlet.py test`
-- MCP server for AI agent integration
+`BYMONTHDAY=29` starting January 2025. February 2025 has only 28 days (not a leap year), so it is skipped entirely per RFC 5545. The 8 occurrences are: Jan, Mar, Apr, May, Jun, Jul, Aug, Sep. LLMs either fabricate a February 29, substitute February 28, or miscount the total after the skip.
 
 ## License
 
