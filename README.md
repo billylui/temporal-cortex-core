@@ -152,7 +152,7 @@ Core handles the math. For production scheduling you also need:
 
 That's the **Temporal Cortex Platform** — currently in private beta. Usage-based pricing starts at $0.001/read and $0.01/booking, with no per-seat fees. Compare that to Nylas ($10/mo + $1/connected account) or Cronofy ($800+/mo).
 
-**[Request early access](https://tally.so/r/temporal-cortex-platform-beta)**
+**[Request early access](https://tally.so/r/aQ66W2)**
 
 ## TOON Format
 
