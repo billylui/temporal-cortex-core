@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-02-20
+
+### Added
+- **Truth Engine**: 16 compound period expressions — `"start of last week"`, `"end of next month"`, `"start of next quarter"`, etc. (start/end × last/next × week/month/year/quarter)
+- **Truth Engine**: Configurable week start day — `WeekStartDay` enum (Monday default, Sunday option) affects all week-related period computations
+- **Truth Engine**: `resolve_relative_with_options(anchor, expression, timezone, &ResolveOptions)` — extends `resolve_relative` with week start configuration (existing API unchanged)
+- **WASM/JS**: `resolveRelativeWithOptions` binding with `ResolveOptions` interface
+- **Python**: `resolve_relative_with_options` function with JSON options parameter
+
 ## [0.2.0] - 2026-02-20
 
 ### Added
@@ -56,7 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Release**: Automated publishing to crates.io, npm, and PyPI on version tags
 - **QA**: 446+ Rust tests, 39+ JS tests, 26 Python tests, ~9,000 property-based tests
 
-[Unreleased]: https://github.com/billylui/temporal-cortex-core/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/billylui/temporal-cortex-core/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/billylui/temporal-cortex-core/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/billylui/temporal-cortex-core/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/billylui/temporal-cortex-core/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/billylui/temporal-cortex-core/releases/tag/v0.1.0

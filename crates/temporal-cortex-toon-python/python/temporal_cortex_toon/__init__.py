@@ -19,6 +19,7 @@ from temporal_cortex_toon._native import (
     compute_duration,
     adjust_timestamp,
     resolve_relative,
+    resolve_relative_with_options,
 )
 from temporal_cortex_toon._native import (
     merge_availability as _native_merge_availability,
@@ -35,6 +36,7 @@ __all__ = [
     "compute_duration",
     "adjust_timestamp",
     "resolve_relative",
+    "resolve_relative_with_options",
 ]
 
 _hint_shown = False

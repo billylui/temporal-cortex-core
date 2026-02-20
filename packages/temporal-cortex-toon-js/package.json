@@ -1,6 +1,6 @@
 {
   "name": "@temporal-cortex/toon",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TOON (Token-Oriented Object Notation) encoder/decoder — compact JSON for LLMs",
   "type": "module",
   "main": "dist/index.js",

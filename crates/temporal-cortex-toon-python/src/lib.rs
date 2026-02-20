@@ -366,6 +366,55 @@ fn resolve_relative(anchor: &str, expression: &str, timezone: &str) -> PyResult<
     serde_json::to_string(&result).map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Resolve a relative time expression with configurable options.
+///
+/// Args:
+///     anchor: RFC 3339 datetime string (the "now" reference point).
+///     expression: Time expression (e.g., "start of last week", "next week").
+///     timezone: IANA timezone for interpreting local-time expressions.
+///     options_json: JSON string with options, e.g., `{"week_start": "sunday"}`.
+///
+/// Returns:
+///     A JSON string with `{resolved_utc, resolved_local, timezone, interpretation}`.
+///
+/// Raises:
+///     ValueError: If the expression cannot be parsed or the timezone is invalid.
+#[pyfunction]
+fn resolve_relative_with_options(
+    anchor: &str,
+    expression: &str,
+    timezone: &str,
+    options_json: &str,
+) -> PyResult<String> {
+    use chrono::{DateTime, NaiveDateTime, Utc};
+
+    let anchor_dt = if let Ok(dt) = DateTime::parse_from_rfc3339(anchor) {
+        dt.with_timezone(&Utc)
+    } else {
+        NaiveDateTime::parse_from_str(anchor, "%Y-%m-%dT%H:%M:%S")
+            .map(|ndt| ndt.and_utc())
+            .map_err(|e| {
+                PyValueError::new_err(format!("Invalid anchor datetime '{}': {}", anchor, e))
+            })?
+    };
+
+    let parsed: serde_json::Value = serde_json::from_str(options_json)
+        .map_err(|e| PyValueError::new_err(format!("Invalid options JSON: {}", e)))?;
+
+    let week_start = match parsed.get("week_start").and_then(|v| v.as_str()) {
+        Some("sunday") => truth_engine::temporal::WeekStartDay::Sunday,
+        _ => truth_engine::temporal::WeekStartDay::Monday,
+    };
+
+    let options = truth_engine::temporal::ResolveOptions { week_start };
+
+    let result = truth_engine::temporal::resolve_relative_with_options(
+        anchor_dt, expression, timezone, &options,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    serde_json::to_string(&result).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
 /// The native extension module, exposed as `temporal_cortex_toon._native`.
 /// The public Python API is in `python/temporal_cortex_toon/__init__.py`.
 #[pymodule]
@@ -380,5 +429,6 @@ fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compute_duration, m)?)?;
     m.add_function(wrap_pyfunction!(adjust_timestamp, m)?)?;
     m.add_function(wrap_pyfunction!(resolve_relative, m)?)?;
+    m.add_function(wrap_pyfunction!(resolve_relative_with_options, m)?)?;
     Ok(())
 }

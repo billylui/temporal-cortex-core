@@ -1,6 +1,6 @@
 {
   "name": "@temporal-cortex/truth-engine",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Truth Engine — deterministic temporal resolution, timezone conversion, RRULE expansion, conflict detection, and availability merging for AI calendar agents",
   "type": "module",
   "main": "dist/index.js",

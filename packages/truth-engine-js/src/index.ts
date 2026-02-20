@@ -30,6 +30,7 @@ const wasm = require("../wasm/truth_engine_wasm.cjs") as {
   computeDuration: (start: string, end: string) => string;
   adjustTimestamp: (datetime: string, adjustment: string, timezone: string) => string;
   resolveRelative: (anchor: string, expression: string, timezone: string) => string;
+  resolveRelativeWithOptions: (anchor: string, expression: string, timezone: string, options_json: string) => string;
 };
 
 // ---------------------------------------------------------------------------
@@ -248,6 +249,11 @@ export interface ResolvedDatetime {
   interpretation: string;
 }
 
+export interface ResolveOptions {
+  /** Which day starts the week: "monday" (default) or "sunday". */
+  week_start?: "monday" | "sunday";
+}
+
 // ---------------------------------------------------------------------------
 // Temporal computation API
 // ---------------------------------------------------------------------------
@@ -313,5 +319,24 @@ export function resolveRelative(
   timezone: string,
 ): ResolvedDatetime {
   const json = wasm.resolveRelative(anchor, expression, timezone);
+  return JSON.parse(json);
+}
+
+/**
+ * Resolve a relative time expression with configurable options.
+ *
+ * @param anchor - RFC 3339 datetime string (the "now" reference point)
+ * @param expression - Time expression (e.g., "start of last week", "next week")
+ * @param timezone - IANA timezone for interpreting local-time expressions
+ * @param options - Resolution options (week start day, etc.)
+ * @returns Resolved datetime in UTC and local time with interpretation
+ */
+export function resolveRelativeWithOptions(
+  anchor: string,
+  expression: string,
+  timezone: string,
+  options: ResolveOptions = {},
+): ResolvedDatetime {
+  const json = wasm.resolveRelativeWithOptions(anchor, expression, timezone, JSON.stringify(options));
   return JSON.parse(json);
 }

@@ -31,6 +31,35 @@ use serde::Serialize;
 
 use crate::error::TruthError;
 
+// ── Configurable week start ─────────────────────────────────────────────────
+
+/// Which day begins a week for period computations ("start of week", "next week", etc.).
+///
+/// Does **not** affect named-weekday expressions like "next Monday" or "last Friday".
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
+pub enum WeekStartDay {
+    /// ISO 8601 standard (Monday = day 0 of the week).
+    #[default]
+    Monday,
+    /// US/Canada convention (Sunday = day 0 of the week).
+    Sunday,
+}
+
+/// Options for [`resolve_relative_with_options`].
+#[derive(Debug, Clone, Default)]
+pub struct ResolveOptions {
+    /// Which day starts the week for period computations.
+    pub week_start: WeekStartDay,
+}
+
+/// How many days `weekday` is from the week-start day.
+fn days_from_week_start(weekday: Weekday, week_start: WeekStartDay) -> i64 {
+    match week_start {
+        WeekStartDay::Monday => weekday.num_days_from_monday() as i64,
+        WeekStartDay::Sunday => weekday.num_days_from_sunday() as i64,
+    }
+}
+
 // ── convert_timezone ────────────────────────────────────────────────────────
 
 /// The result of converting a datetime to a target timezone.
@@ -277,11 +306,35 @@ pub struct ResolvedDatetime {
 
 /// Resolve a relative time expression to an absolute datetime.
 ///
+/// Uses ISO 8601 week start (Monday). For configurable week start, use
+/// [`resolve_relative_with_options`].
+///
+/// # Arguments
+///
+/// * `anchor` — The reference "now" instant (typically `Utc::now()`)
+/// * `expression` — A time expression (see [`resolve_relative_with_options`] for grammar)
+/// * `timezone` — An IANA timezone name for interpreting local-time expressions
+///
+/// # Errors
+///
+/// Returns [`TruthError::InvalidExpression`] if the expression cannot be parsed
+/// deterministically.
+pub fn resolve_relative(
+    anchor: DateTime<Utc>,
+    expression: &str,
+    timezone: &str,
+) -> Result<ResolvedDatetime, TruthError> {
+    resolve_relative_with_options(anchor, expression, timezone, &ResolveOptions::default())
+}
+
+/// Resolve a relative time expression to an absolute datetime with options.
+///
 /// # Arguments
 ///
 /// * `anchor` — The reference "now" instant (typically `Utc::now()`)
 /// * `expression` — A time expression (see grammar below)
 /// * `timezone` — An IANA timezone name for interpreting local-time expressions
+/// * `options` — Resolution options (week start day, etc.)
 ///
 /// # Supported Expressions
 ///
@@ -304,6 +357,9 @@ pub struct ResolvedDatetime {
 /// **Period boundaries**: `"start of week"`, `"end of month"`, `"start of quarter"`,
 /// `"next week"`, `"last month"`, `"next year"`
 ///
+/// **Compound periods**: `"start of last week"`, `"end of next month"`,
+/// `"start of next quarter"`, `"end of last year"`
+///
 /// **Ordinal dates**: `"first Monday of March"`, `"last Friday of the month"`,
 /// `"third Tuesday of March 2026"`
 ///
@@ -314,13 +370,15 @@ pub struct ResolvedDatetime {
 /// Returns [`TruthError::InvalidExpression`] if the expression cannot be parsed
 /// deterministically. This function **never guesses** — it returns an error for
 /// any ambiguous input.
-pub fn resolve_relative(
+pub fn resolve_relative_with_options(
     anchor: DateTime<Utc>,
     expression: &str,
     timezone: &str,
+    options: &ResolveOptions,
 ) -> Result<ResolvedDatetime, TruthError> {
     let tz = parse_timezone(timezone)?;
     let local_anchor = anchor.with_timezone(&tz);
+    let ws = options.week_start;
 
     // Normalize: trim, lowercase, strip articles
     let normalized = normalize_expression(expression);
@@ -333,8 +391,9 @@ pub fn resolve_relative(
         .or_else(|| try_combined_weekday_time(&normalized, &local_anchor, &tz))
         .or_else(|| try_combined_anchor_time(&normalized, &local_anchor, &tz))
         .or_else(|| try_weekday_relative(&normalized, &local_anchor, &tz))
-        .or_else(|| try_period_boundary(&normalized, &local_anchor, &tz))
-        .or_else(|| try_period_relative(&normalized, &local_anchor, &tz))
+        .or_else(|| try_compound_period(&normalized, &local_anchor, &tz, ws))
+        .or_else(|| try_period_boundary(&normalized, &local_anchor, &tz, ws))
+        .or_else(|| try_period_relative(&normalized, &local_anchor, &tz, ws))
         .or_else(|| try_ordinal_date(&normalized, &local_anchor, &tz))
         .or_else(|| try_natural_offset(&normalized, &anchor))
         .or_else(|| try_duration_offset(&normalized, &anchor))
@@ -788,7 +847,12 @@ fn try_duration_offset(s: &str, anchor: &DateTime<Utc>) -> Option<DateTime<Tz>> 
 }
 
 /// Try period boundary: "start of week", "end of month", etc.
-fn try_period_boundary(s: &str, local: &DateTime<Tz>, tz: &Tz) -> Option<DateTime<Tz>> {
+fn try_period_boundary(
+    s: &str,
+    local: &DateTime<Tz>,
+    tz: &Tz,
+    ws: WeekStartDay,
+) -> Option<DateTime<Tz>> {
     match s {
         "start of today" => make_local_start_of_day(local, tz),
         "end of today" => {
@@ -796,15 +860,15 @@ fn try_period_boundary(s: &str, local: &DateTime<Tz>, tz: &Tz) -> Option<DateTim
             tz.from_local_datetime(&naive).single()
         }
         "start of week" => {
-            let days_since_monday = local.weekday().num_days_from_monday() as i64;
-            let monday = local.date_naive() - chrono::Duration::days(days_since_monday);
-            let naive = monday.and_hms_opt(0, 0, 0)?;
+            let days_since_start = days_from_week_start(local.weekday(), ws);
+            let start = local.date_naive() - chrono::Duration::days(days_since_start);
+            let naive = start.and_hms_opt(0, 0, 0)?;
             tz.from_local_datetime(&naive).single()
         }
         "end of week" => {
-            let days_until_sunday = 6 - local.weekday().num_days_from_monday() as i64;
-            let sunday = local.date_naive() + chrono::Duration::days(days_until_sunday);
-            let naive = sunday.and_hms_opt(23, 59, 59)?;
+            let days_until_end = 6 - days_from_week_start(local.weekday(), ws);
+            let end = local.date_naive() + chrono::Duration::days(days_until_end);
+            let naive = end.and_hms_opt(23, 59, 59)?;
             tz.from_local_datetime(&naive).single()
         }
         "start of month" => {
@@ -856,19 +920,24 @@ fn try_period_boundary(s: &str, local: &DateTime<Tz>, tz: &Tz) -> Option<DateTim
 }
 
 /// Try period relative: "next week", "last month", "next year", etc.
-fn try_period_relative(s: &str, local: &DateTime<Tz>, tz: &Tz) -> Option<DateTime<Tz>> {
+fn try_period_relative(
+    s: &str,
+    local: &DateTime<Tz>,
+    tz: &Tz,
+    ws: WeekStartDay,
+) -> Option<DateTime<Tz>> {
     match s {
         "next week" => {
-            let days_until_next_monday = 7 - local.weekday().num_days_from_monday() as i64;
-            let monday = local.date_naive() + chrono::Duration::days(days_until_next_monday);
-            let naive = monday.and_hms_opt(0, 0, 0)?;
+            let days_until_next_start = 7 - days_from_week_start(local.weekday(), ws);
+            let start = local.date_naive() + chrono::Duration::days(days_until_next_start);
+            let naive = start.and_hms_opt(0, 0, 0)?;
             tz.from_local_datetime(&naive).single()
         }
         "last week" => {
-            let days_since_monday = local.weekday().num_days_from_monday() as i64;
-            let this_monday = local.date_naive() - chrono::Duration::days(days_since_monday);
-            let last_monday = this_monday - chrono::Duration::days(7);
-            let naive = last_monday.and_hms_opt(0, 0, 0)?;
+            let days_since_start = days_from_week_start(local.weekday(), ws);
+            let this_start = local.date_naive() - chrono::Duration::days(days_since_start);
+            let last_start = this_start - chrono::Duration::days(7);
+            let naive = last_start.and_hms_opt(0, 0, 0)?;
             tz.from_local_datetime(&naive).single()
         }
         "next month" => {
@@ -900,6 +969,164 @@ fn try_period_relative(s: &str, local: &DateTime<Tz>, tz: &Tz) -> Option<DateTim
             let date = NaiveDate::from_ymd_opt(local.year() - 1, 1, 1)?;
             let naive = date.and_hms_opt(0, 0, 0)?;
             tz.from_local_datetime(&naive).single()
+        }
+        _ => None,
+    }
+}
+
+/// Try compound period: "start of last week", "end of next month", etc.
+///
+/// Combines a boundary (start/end) with a period relative (last/next week/month/year/quarter).
+fn try_compound_period(
+    s: &str,
+    local: &DateTime<Tz>,
+    tz: &Tz,
+    ws: WeekStartDay,
+) -> Option<DateTime<Tz>> {
+    let (is_start, rest) = if let Some(r) = s.strip_prefix("start of ") {
+        (true, r)
+    } else if let Some(r) = s.strip_prefix("end of ") {
+        (false, r)
+    } else {
+        return None;
+    };
+
+    match rest {
+        "last week" => {
+            let days_since_start = days_from_week_start(local.weekday(), ws);
+            let this_start = local.date_naive() - chrono::Duration::days(days_since_start);
+            let last_start = this_start - chrono::Duration::days(7);
+            if is_start {
+                let naive = last_start.and_hms_opt(0, 0, 0)?;
+                tz.from_local_datetime(&naive).single()
+            } else {
+                let last_end = last_start + chrono::Duration::days(6);
+                let naive = last_end.and_hms_opt(23, 59, 59)?;
+                tz.from_local_datetime(&naive).single()
+            }
+        }
+        "next week" => {
+            let days_until_next_start = 7 - days_from_week_start(local.weekday(), ws);
+            let next_start = local.date_naive() + chrono::Duration::days(days_until_next_start);
+            if is_start {
+                let naive = next_start.and_hms_opt(0, 0, 0)?;
+                tz.from_local_datetime(&naive).single()
+            } else {
+                let next_end = next_start + chrono::Duration::days(6);
+                let naive = next_end.and_hms_opt(23, 59, 59)?;
+                tz.from_local_datetime(&naive).single()
+            }
+        }
+        "last month" => {
+            let (y, m) = if local.month() == 1 {
+                (local.year() - 1, 12)
+            } else {
+                (local.year(), local.month() - 1)
+            };
+            if is_start {
+                let date = NaiveDate::from_ymd_opt(y, m, 1)?;
+                let naive = date.and_hms_opt(0, 0, 0)?;
+                tz.from_local_datetime(&naive).single()
+            } else {
+                // Last day of prev month = day before 1st of current month
+                let first_current = NaiveDate::from_ymd_opt(local.year(), local.month(), 1)?;
+                let last_day = first_current.pred_opt()?;
+                let naive = last_day.and_hms_opt(23, 59, 59)?;
+                tz.from_local_datetime(&naive).single()
+            }
+        }
+        "next month" => {
+            let (y, m) = if local.month() == 12 {
+                (local.year() + 1, 1)
+            } else {
+                (local.year(), local.month() + 1)
+            };
+            if is_start {
+                let date = NaiveDate::from_ymd_opt(y, m, 1)?;
+                let naive = date.and_hms_opt(0, 0, 0)?;
+                tz.from_local_datetime(&naive).single()
+            } else {
+                // Last day of next month
+                let (ny, nm) = if m == 12 { (y + 1, 1) } else { (y, m + 1) };
+                let first_after = NaiveDate::from_ymd_opt(ny, nm, 1)?;
+                let last_day = first_after.pred_opt()?;
+                let naive = last_day.and_hms_opt(23, 59, 59)?;
+                tz.from_local_datetime(&naive).single()
+            }
+        }
+        "last year" => {
+            let y = local.year() - 1;
+            if is_start {
+                let date = NaiveDate::from_ymd_opt(y, 1, 1)?;
+                let naive = date.and_hms_opt(0, 0, 0)?;
+                tz.from_local_datetime(&naive).single()
+            } else {
+                let date = NaiveDate::from_ymd_opt(y, 12, 31)?;
+                let naive = date.and_hms_opt(23, 59, 59)?;
+                tz.from_local_datetime(&naive).single()
+            }
+        }
+        "next year" => {
+            let y = local.year() + 1;
+            if is_start {
+                let date = NaiveDate::from_ymd_opt(y, 1, 1)?;
+                let naive = date.and_hms_opt(0, 0, 0)?;
+                tz.from_local_datetime(&naive).single()
+            } else {
+                let date = NaiveDate::from_ymd_opt(y, 12, 31)?;
+                let naive = date.and_hms_opt(23, 59, 59)?;
+                tz.from_local_datetime(&naive).single()
+            }
+        }
+        "last quarter" => {
+            let current_q = (local.month() - 1) / 3; // 0-based: Q1=0, Q2=1, Q3=2, Q4=3
+            let (prev_y, prev_q) = if current_q == 0 {
+                (local.year() - 1, 3)
+            } else {
+                (local.year(), current_q - 1)
+            };
+            let q_first_month = prev_q * 3 + 1;
+            if is_start {
+                let date = NaiveDate::from_ymd_opt(prev_y, q_first_month, 1)?;
+                let naive = date.and_hms_opt(0, 0, 0)?;
+                tz.from_local_datetime(&naive).single()
+            } else {
+                let q_last_month = prev_q * 3 + 3;
+                let (ny, nm) = if q_last_month == 12 {
+                    (prev_y + 1, 1)
+                } else {
+                    (prev_y, q_last_month + 1)
+                };
+                let first_after = NaiveDate::from_ymd_opt(ny, nm, 1)?;
+                let last_day = first_after.pred_opt()?;
+                let naive = last_day.and_hms_opt(23, 59, 59)?;
+                tz.from_local_datetime(&naive).single()
+            }
+        }
+        "next quarter" => {
+            let current_q = (local.month() - 1) / 3;
+            let (next_y, next_q) = if current_q == 3 {
+                (local.year() + 1, 0)
+            } else {
+                (local.year(), current_q + 1)
+            };
+            let q_first_month = next_q * 3 + 1;
+            if is_start {
+                let date = NaiveDate::from_ymd_opt(next_y, q_first_month, 1)?;
+                let naive = date.and_hms_opt(0, 0, 0)?;
+                tz.from_local_datetime(&naive).single()
+            } else {
+                let q_last_month = next_q * 3 + 3;
+                let (ny, nm) = if q_last_month == 12 {
+                    (next_y + 1, 1)
+                } else {
+                    (next_y, q_last_month + 1)
+                };
+                let first_after = NaiveDate::from_ymd_opt(ny, nm, 1)?;
+                let last_day = first_after.pred_opt()?;
+                let naive = last_day.and_hms_opt(23, 59, 59)?;
+                tz.from_local_datetime(&naive).single()
+            }
         }
         _ => None,
     }
@@ -1686,5 +1913,133 @@ mod tests {
         assert!(result.interpretation.contains("Tuesday"));
         assert!(result.interpretation.contains("February 24"));
         assert!(result.interpretation.contains("2026"));
+    }
+
+    // ── Compound period expression tests ────────────────────────────────
+
+    #[test]
+    fn test_resolve_start_of_last_week() {
+        // Anchor is Wed Feb 18 → last week started Mon Feb 9
+        let result = resolve_relative(anchor(), "start of last week", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2026-02-09"));
+        assert!(result.resolved_utc.contains("00:00:00"));
+    }
+
+    #[test]
+    fn test_resolve_end_of_last_week() {
+        // Anchor is Wed Feb 18 → last week ended Sun Feb 15
+        let result = resolve_relative(anchor(), "end of last week", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2026-02-15"));
+        assert!(result.resolved_utc.contains("23:59:59"));
+    }
+
+    #[test]
+    fn test_resolve_start_of_next_week() {
+        // Anchor is Wed Feb 18 → next week starts Mon Feb 23
+        let result = resolve_relative(anchor(), "start of next week", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2026-02-23"));
+        assert!(result.resolved_utc.contains("00:00:00"));
+    }
+
+    #[test]
+    fn test_resolve_end_of_next_week() {
+        // Anchor is Wed Feb 18 → next week ends Sun Mar 1
+        let result = resolve_relative(anchor(), "end of next week", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2026-03-01"));
+        assert!(result.resolved_utc.contains("23:59:59"));
+    }
+
+    #[test]
+    fn test_resolve_start_of_last_month() {
+        let result = resolve_relative(anchor(), "start of last month", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2026-01-01"));
+        assert!(result.resolved_utc.contains("00:00:00"));
+    }
+
+    #[test]
+    fn test_resolve_end_of_last_month() {
+        // Jan has 31 days
+        let result = resolve_relative(anchor(), "end of last month", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2026-01-31"));
+        assert!(result.resolved_utc.contains("23:59:59"));
+    }
+
+    #[test]
+    fn test_resolve_start_of_next_month() {
+        let result = resolve_relative(anchor(), "start of next month", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2026-03-01"));
+        assert!(result.resolved_utc.contains("00:00:00"));
+    }
+
+    #[test]
+    fn test_resolve_end_of_next_month() {
+        // March has 31 days
+        let result = resolve_relative(anchor(), "end of next month", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2026-03-31"));
+        assert!(result.resolved_utc.contains("23:59:59"));
+    }
+
+    #[test]
+    fn test_resolve_start_of_next_year() {
+        let result = resolve_relative(anchor(), "start of next year", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2027-01-01"));
+        assert!(result.resolved_utc.contains("00:00:00"));
+    }
+
+    #[test]
+    fn test_resolve_end_of_last_quarter() {
+        // Anchor is Feb 2026 (Q1) → last quarter is Q4 2025 → ends Dec 31, 2025
+        let result = resolve_relative(anchor(), "end of last quarter", "UTC").unwrap();
+        assert!(result.resolved_utc.contains("2025-12-31"));
+        assert!(result.resolved_utc.contains("23:59:59"));
+    }
+
+    // ── Sunday week start tests ─────────────────────────────────────────
+
+    #[test]
+    fn test_resolve_start_of_week_sunday() {
+        // Anchor is Wed Feb 18 → with Sunday start, week started Sun Feb 15
+        let options = ResolveOptions {
+            week_start: WeekStartDay::Sunday,
+        };
+        let result =
+            resolve_relative_with_options(anchor(), "start of week", "UTC", &options).unwrap();
+        assert!(result.resolved_utc.contains("2026-02-15"));
+        assert!(result.resolved_utc.contains("00:00:00"));
+    }
+
+    #[test]
+    fn test_resolve_end_of_week_sunday() {
+        // Anchor is Wed Feb 18 → with Sunday start, week ends Sat Feb 21
+        let options = ResolveOptions {
+            week_start: WeekStartDay::Sunday,
+        };
+        let result =
+            resolve_relative_with_options(anchor(), "end of week", "UTC", &options).unwrap();
+        assert!(result.resolved_utc.contains("2026-02-21"));
+        assert!(result.resolved_utc.contains("23:59:59"));
+    }
+
+    #[test]
+    fn test_resolve_start_of_last_week_sunday() {
+        // Anchor is Wed Feb 18 → with Sunday start, last week started Sun Feb 8
+        let options = ResolveOptions {
+            week_start: WeekStartDay::Sunday,
+        };
+        let result =
+            resolve_relative_with_options(anchor(), "start of last week", "UTC", &options).unwrap();
+        assert!(result.resolved_utc.contains("2026-02-08"));
+        assert!(result.resolved_utc.contains("00:00:00"));
+    }
+
+    #[test]
+    fn test_resolve_next_week_sunday() {
+        // Anchor is Wed Feb 18 → with Sunday start, next week starts Sun Feb 22
+        let options = ResolveOptions {
+            week_start: WeekStartDay::Sunday,
+        };
+        let result = resolve_relative_with_options(anchor(), "next week", "UTC", &options).unwrap();
+        assert!(result.resolved_utc.contains("2026-02-22"));
+        assert!(result.resolved_utc.contains("00:00:00"));
     }
 }

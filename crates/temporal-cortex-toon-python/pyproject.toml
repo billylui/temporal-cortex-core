@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "temporal-cortex-toon"
-version = "0.2.0"
+version = "0.2.1"
 description = "TOON encoder/decoder and Truth Engine (temporal resolution, timezone conversion, RRULE expansion, availability merging) for AI calendar agents"
 readme = "README.md"
 license = "MIT OR Apache-2.0"

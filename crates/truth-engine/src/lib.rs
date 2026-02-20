@@ -34,6 +34,7 @@ pub use error::TruthError;
 pub use expander::{expand_rrule, expand_rrule_with_exdates, ExpandedEvent};
 pub use freebusy::{find_free_slots, FreeSlot};
 pub use temporal::{
-    adjust_timestamp, compute_duration, convert_timezone, resolve_relative, AdjustedTimestamp,
-    ConvertedDatetime, DurationInfo, ResolvedDatetime,
+    adjust_timestamp, compute_duration, convert_timezone, resolve_relative,
+    resolve_relative_with_options, AdjustedTimestamp, ConvertedDatetime, DurationInfo,
+    ResolveOptions, ResolvedDatetime, WeekStartDay,
 };

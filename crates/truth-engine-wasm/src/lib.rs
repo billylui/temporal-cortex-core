@@ -417,3 +417,43 @@ pub fn resolve_relative(anchor: &str, expression: &str, timezone: &str) -> Resul
     serde_json::to_string(&result)
         .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
 }
+
+/// Resolve a relative time expression with configurable options.
+///
+/// Same as `resolveRelative` but accepts an `options_json` parameter:
+/// `{"week_start": "monday"|"sunday"}`.
+///
+/// Returns a JSON string with `{resolved_utc, resolved_local, timezone, interpretation}`.
+#[wasm_bindgen(js_name = "resolveRelativeWithOptions")]
+pub fn resolve_relative_with_options(
+    anchor: &str,
+    expression: &str,
+    timezone: &str,
+    options_json: &str,
+) -> Result<String, JsValue> {
+    let anchor_dt = parse_datetime(anchor)?;
+
+    let options: ResolveOptionsInput = serde_json::from_str(options_json)
+        .map_err(|e| JsValue::from_str(&format!("Invalid options JSON: {}", e)))?;
+
+    let opts = truth_engine::temporal::ResolveOptions {
+        week_start: match options.week_start.as_deref() {
+            Some("sunday") => truth_engine::temporal::WeekStartDay::Sunday,
+            _ => truth_engine::temporal::WeekStartDay::Monday,
+        },
+    };
+
+    let result = truth_engine::temporal::resolve_relative_with_options(
+        anchor_dt, expression, timezone, &opts,
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    serde_json::to_string(&result)
+        .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+}
+
+/// Input format for resolve options passed from JavaScript.
+#[derive(Deserialize)]
+struct ResolveOptionsInput {
+    week_start: Option<String>,
+}

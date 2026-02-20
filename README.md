@@ -219,7 +219,19 @@ println!("{}", result.resolved_local);  // "2026-02-24T14:00:00-05:00"
 println!("{}", result.interpretation);  // "Tuesday, February 24, 2026 at 2:00 PM"
 ```
 
-Supports: `"tomorrow morning"`, `"in 2 hours"`, `"last Friday"`, `"end of month"`, `"third Tuesday of March"`, `"+1d2h30m"`, and [60+ expression patterns](crates/truth-engine/src/temporal.rs).
+Supports: `"tomorrow morning"`, `"in 2 hours"`, `"last Friday"`, `"end of month"`, `"start of last week"`, `"end of next quarter"`, `"third Tuesday of March"`, `"+1d2h30m"`, and [70+ expression patterns](crates/truth-engine/src/temporal.rs).
+
+Configurable week start (Monday default, Sunday option):
+
+```rust
+use truth_engine::temporal::{resolve_relative_with_options, ResolveOptions, WeekStartDay};
+use chrono::Utc;
+
+let now = Utc::now();
+let options = ResolveOptions { week_start: WeekStartDay::Sunday };
+let result = resolve_relative_with_options(now, "start of week", "America/New_York", &options).unwrap();
+// Returns Sunday 00:00 instead of Monday 00:00
+```
 
 ### Convert timezones
 
