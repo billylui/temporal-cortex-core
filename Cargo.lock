@@ -1053,7 +1053,7 @@ dependencies = [
 
 [[package]]
 name = "temporal-cortex-toon"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "criterion",
  "proptest",
@@ -1064,7 +1064,7 @@ dependencies = [
 
 [[package]]
 name = "temporal-cortex-toon-cli"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1076,7 +1076,7 @@ dependencies = [
 
 [[package]]
 name = "temporal-cortex-toon-python"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "pyo3",
@@ -1088,7 +1088,7 @@ dependencies = [
 
 [[package]]
 name = "temporal-cortex-toon-wasm"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "temporal-cortex-toon",
  "wasm-bindgen",
@@ -1132,7 +1132,7 @@ dependencies = [
 
 [[package]]
 name = "truth-engine"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "chrono-tz",
@@ -1145,7 +1145,7 @@ dependencies = [
 
 [[package]]
 name = "truth-engine-wasm"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "serde",

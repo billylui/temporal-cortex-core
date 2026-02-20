@@ -6,7 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/temporal-cortex-toon.svg)](https://pypi.org/project/temporal-cortex-toon/)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-Stop LLMs from hallucinating your calendar. Deterministic RRULE expansion, multi-calendar availability merging, and conflict detection — no inference, no API keys.
+Stop LLMs from hallucinating your calendar. Deterministic temporal resolution, RRULE expansion, multi-calendar availability merging, and conflict detection — no inference, no API keys.
 
 ## The Problem
 
@@ -16,7 +16,7 @@ Every person's availability is also fragmented across Google Calendar, Outlook, 
 
 ## The Fix
 
-**Truth Engine** is a deterministic computation layer that replaces LLM inference for calendar math: RRULE expansion, DST-aware timezone conversion, multi-calendar availability merging, and conflict detection. No network calls. No API keys. Just math.
+**Truth Engine** is a deterministic computation layer that replaces LLM inference for calendar math: temporal resolution (`"next Tuesday at 2pm"` → RFC 3339), timezone conversion, duration computation, RRULE expansion, multi-calendar availability merging, and conflict detection. No network calls. No API keys. Just math.
 
 **TOON** (Token-Oriented Object Notation) compresses calendar payloads by 40-60% before they enter the context window. Perfect roundtrip fidelity.
 
@@ -101,6 +101,7 @@ let availability = merge_availability(
 
 | Feature | Description |
 |---------|-------------|
+| **Temporal context** | Timezone conversion, duration computation, timestamp adjustment, relative datetime resolution (`"next Tuesday at 2pm"` → RFC 3339). |
 | **RRULE expansion** | RFC 5545 recurrence rules to concrete datetimes. DST-aware, leap-year-safe. |
 | **Availability merging** | N event streams from N calendars into one unified busy/free view. |
 | **Privacy levels** | `Opaque` (just busy/free) or `Full` (includes source counts per block). |
@@ -110,7 +111,7 @@ let availability = merge_availability(
 | **Semantic filtering** | Strip noisy fields (etag, kind, htmlLink) before encoding. Google Calendar preset included. |
 | **TOON CLI** | Pipe JSON through `toon encode` / `toon decode` from the command line. |
 
-Pure computation. No network calls. No API keys. No setup. 446+ Rust tests, 39 JS tests, 26 Python tests, ~9,000 property-based tests.
+Pure computation. No network calls. No API keys. No setup. 510+ Rust tests, 42 JS tests, 30 Python tests, ~9,000 property-based tests.
 
 ## Installation
 
@@ -201,6 +202,64 @@ toon encode --filter-preset google -i calendar.json
 # Compression stats
 toon stats -i data.json
 ```
+
+## Temporal Computation
+
+The `temporal` module provides four pure functions for datetime work that LLMs get wrong:
+
+### Resolve relative expressions
+
+```rust
+use truth_engine::temporal::{resolve_relative, ResolvedDatetime};
+use chrono::Utc;
+
+let now = Utc::now();
+let result = resolve_relative(now, "next Tuesday at 2pm", "America/New_York").unwrap();
+println!("{}", result.resolved_local);  // "2026-02-24T14:00:00-05:00"
+println!("{}", result.interpretation);  // "Tuesday, February 24, 2026 at 2:00 PM"
+```
+
+Supports: `"tomorrow morning"`, `"in 2 hours"`, `"last Friday"`, `"end of month"`, `"third Tuesday of March"`, `"+1d2h30m"`, and [60+ expression patterns](crates/truth-engine/src/temporal.rs).
+
+### Convert timezones
+
+```rust
+use truth_engine::temporal::convert_timezone;
+
+let result = convert_timezone("2026-03-08T06:00:00+00:00", "America/New_York").unwrap();
+assert_eq!(result.local, "2026-03-08T01:00:00-05:00");
+assert_eq!(result.dst_active, false);
+```
+
+### Compute durations
+
+```rust
+use truth_engine::temporal::compute_duration;
+
+let d = compute_duration(
+    "2026-02-20T09:00:00+00:00",
+    "2026-02-20T17:30:00+00:00",
+).unwrap();
+assert_eq!(d.hours, 8);
+assert_eq!(d.minutes, 30);
+assert_eq!(d.human_readable, "8 hours, 30 minutes");
+```
+
+### Adjust timestamps
+
+```rust
+use truth_engine::temporal::adjust_timestamp;
+
+let result = adjust_timestamp(
+    "2026-03-08T01:00:00-05:00",  // 1am EST
+    "+1d",                         // add one day (across DST spring-forward)
+    "America/New_York",
+).unwrap();
+// Same wall-clock time, different offset (DST-aware)
+assert!(result.adjusted_local.contains("01:00:00-04:00"));
+```
+
+All four functions are pure computation — no clock, no network. They take explicit datetime/anchor parameters and return deterministic results. Available in Rust, WASM/JavaScript, and Python.
 
 ## Architecture
 

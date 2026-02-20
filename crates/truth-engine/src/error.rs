@@ -10,6 +10,15 @@ pub enum TruthError {
     #[error("Invalid timezone: {0}")]
     InvalidTimezone(String),
 
+    #[error("Invalid datetime: {0}")]
+    InvalidDatetime(String),
+
+    #[error("Invalid duration: {0}")]
+    InvalidDuration(String),
+
+    #[error("Invalid expression: {0}")]
+    InvalidExpression(String),
+
     #[error("Expansion error: {0}")]
     Expansion(String),
 

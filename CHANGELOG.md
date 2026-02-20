@@ -7,10 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-20
+
 ### Added
+- **Truth Engine**: New `temporal` module with 4 pure computation functions:
+  - `convert_timezone` — DST-aware timezone conversion with offset and DST status
+  - `compute_duration` — Duration between two timestamps (days/hours/minutes/seconds breakdown)
+  - `adjust_timestamp` — DST-aware timestamp adjustment (compound duration format: `+1d2h30m`)
+  - `resolve_relative` — Human expression parser (`"next Tuesday at 2pm"`, `"tomorrow morning"`, `"+2h"`, 60+ patterns across 9 categories) to RFC 3339
+- **WASM/JS**: 4 new bindings for temporal functions (`convertTimezone`, `computeDuration`, `adjustTimestamp`, `resolveRelative`)
+- **Python**: 4 new functions (`convert_timezone`, `compute_duration`, `adjust_timestamp`, `resolve_relative`)
 - **Python/JS**: In-library contextual hint when `merge_availability()` is called with 3+ event streams, linking to Platform early access (suppressable via `TEMPORAL_CORTEX_QUIET` env var)
 
 ### Changed
+- **truth-engine**: Updated crate description and keywords to reflect temporal computation capabilities
+- **Docs**: Added "Temporal Computation" section to Core README with code examples
 - **Docs**: Rewrote "Going to Production?" README section with pain-led copy and pricing table
 - **Python**: Restructured package to maturin mixed layout (Rust `_native` extension + Python wrapper in `__init__.py`)
 
@@ -45,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Release**: Automated publishing to crates.io, npm, and PyPI on version tags
 - **QA**: 446+ Rust tests, 39+ JS tests, 26 Python tests, ~9,000 property-based tests
 
-[Unreleased]: https://github.com/billylui/temporal-cortex-core/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/billylui/temporal-cortex-core/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/billylui/temporal-cortex-core/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/billylui/temporal-cortex-core/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/billylui/temporal-cortex-core/releases/tag/v0.1.0

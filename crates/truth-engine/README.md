@@ -1,8 +1,8 @@
 # truth-engine
 
-Deterministic RRULE expansion with DST handling for AI calendar agents.
+Deterministic calendar computation for AI agents: temporal resolution, timezone conversion, RRULE expansion, availability merging, and conflict detection.
 
-LLMs struggle with recurrence rule math — they hallucinate dates, mishandle DST transitions, and can't reliably compute "3rd Tuesday of each month." The Truth Engine replaces inference with deterministic computation using the `rrule` crate and `chrono-tz`.
+LLMs hallucinate 60% of the time on date/time tasks. They can't reliably answer "What time is next Tuesday at 2pm EST in UTC?" or compute "3rd Tuesday of each month across DST." The Truth Engine replaces inference with deterministic computation — no network, no API keys, just math.
 
 ## Usage
 
@@ -40,6 +40,15 @@ let free = find_free_slots(
 
 ## Features
 
+### Temporal Computation
+
+- `resolve_relative(anchor, expression, timezone)` — Parse human expressions into RFC 3339 (`"next Tuesday at 2pm"`, `"tomorrow morning"`, `"+2h"`, 60+ patterns)
+- `convert_timezone(datetime, timezone)` — DST-aware timezone conversion with offset and DST status
+- `compute_duration(start, end)` — Duration breakdown (days, hours, minutes, seconds, human-readable)
+- `adjust_timestamp(datetime, adjustment, timezone)` — DST-aware adjustment (compound format: `"+1d2h30m"`)
+
+All functions are pure computation — explicit datetime/anchor parameters, no clock, no state.
+
 ### RRULE Expansion
 
 - Full RFC 5545 recurrence rule support via the `rrule` crate v0.14
@@ -64,6 +73,22 @@ let free = find_free_slots(
 
 ## API
 
+### `resolve_relative(anchor, expression, timezone) -> Result<ResolvedDatetime>`
+
+Resolves human time expressions into precise RFC 3339 timestamps. Supports 60+ patterns across 9 categories (anchored, weekday, time-of-day, explicit time, offsets, combined, period boundaries, ordinals, passthrough).
+
+### `convert_timezone(datetime, target_timezone) -> Result<ConvertedDatetime>`
+
+Converts an RFC 3339 datetime to a target IANA timezone with DST status.
+
+### `compute_duration(start, end) -> Result<DurationInfo>`
+
+Computes the duration between two RFC 3339 timestamps with days/hours/minutes/seconds breakdown.
+
+### `adjust_timestamp(datetime, adjustment, timezone) -> Result<AdjustedTimestamp>`
+
+Adjusts a timestamp by a compound duration (`"+1d2h30m"`), DST-aware for day-level adjustments.
+
 ### `expand_rrule(rrule, dtstart, duration_minutes, timezone, until, count)`
 
 Expands an RRULE string into concrete `ExpandedEvent` instances.
@@ -87,21 +112,25 @@ Finds the earliest free slot of at least the given duration.
 ## Architecture
 
 ```
-expander.rs  ← RRULE string → Vec<ExpandedEvent> (wraps rrule + chrono-tz)
-conflict.rs  ← Two event lists → Vec<Conflict> (pairwise overlap detection)
-freebusy.rs  ← Events + window → Vec<FreeSlot> (gap computation)
-dst.rs       ← DstPolicy enum (Skip, ShiftForward, WallClock)
-error.rs     ← TruthError enum (InvalidRule, InvalidTimezone, Expansion)
+temporal.rs     ← Timezone conversion, duration, timestamp adjustment, expression parsing
+expander.rs     ← RRULE string → Vec<ExpandedEvent> (wraps rrule + chrono-tz)
+availability.rs ← N event streams → unified busy/free with privacy control
+conflict.rs     ← Two event lists → Vec<Conflict> (pairwise overlap detection)
+freebusy.rs     ← Events + window → Vec<FreeSlot> (gap computation)
+dst.rs          ← DstPolicy enum (Skip, ShiftForward, WallClock)
+error.rs        ← TruthError enum (InvalidRule, InvalidTimezone, InvalidExpression, etc.)
 ```
 
 ## Testing
 
-33 tests across four suites:
+150+ tests across six modules:
 
-- **11 expander tests** — CTO's monthly 3rd Tuesday example, DST transitions, daily/weekly/biweekly, COUNT, UNTIL, duration
+- **65 temporal tests** — timezone conversion, duration computation, timestamp adjustment, 30+ expression patterns
+- **11 expander tests** — CTO's monthly 3rd Tuesday, DST transitions, daily/weekly/biweekly, COUNT, UNTIL
+- **25+ availability tests** — multi-stream merging, privacy levels, free slot search
 - **7 conflict tests** — overlapping, non-overlapping, adjacent, contained, multiple, empty
 - **7 free/busy tests** — single event, merged overlapping, empty, min-duration, fully booked
-- **8 RFC 5545 compliance vectors** — biweekly multi-day, yearly, leap year Feb 29, EXDATE, COUNT, INTERVAL, BYSETPOS last weekday, multi-rule intersection
+- **8 RFC 5545 compliance vectors** — biweekly multi-day, yearly, leap year Feb 29, EXDATE, BYSETPOS
 
 ```bash
 cargo test -p truth-engine

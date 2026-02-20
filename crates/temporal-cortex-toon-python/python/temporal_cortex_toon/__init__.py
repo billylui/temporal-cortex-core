@@ -15,6 +15,10 @@ from temporal_cortex_toon._native import (
     expand_rrule,
     filter_and_encode,
     find_first_free_across,
+    convert_timezone,
+    compute_duration,
+    adjust_timestamp,
+    resolve_relative,
 )
 from temporal_cortex_toon._native import (
     merge_availability as _native_merge_availability,
@@ -27,6 +31,10 @@ __all__ = [
     "filter_and_encode",
     "find_first_free_across",
     "merge_availability",
+    "convert_timezone",
+    "compute_duration",
+    "adjust_timestamp",
+    "resolve_relative",
 ]
 
 _hint_shown = False

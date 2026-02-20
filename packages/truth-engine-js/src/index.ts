@@ -26,6 +26,10 @@ const wasm = require("../wasm/truth_engine_wasm.cjs") as {
   findFreeSlots: (events_json: string, window_start: string, window_end: string) => string;
   mergeAvailability: (streams_json: string, window_start: string, window_end: string, opaque: boolean) => string;
   findFirstFreeAcross: (streams_json: string, window_start: string, window_end: string, min_duration_minutes: number) => string;
+  convertTimezone: (datetime: string, target_timezone: string) => string;
+  computeDuration: (start: string, end: string) => string;
+  adjustTimestamp: (datetime: string, adjustment: string, timezone: string) => string;
+  resolveRelative: (anchor: string, expression: string, timezone: string) => string;
 };
 
 // ---------------------------------------------------------------------------
@@ -206,5 +210,108 @@ export function findFirstFreeAcross(
   minDurationMinutes: number,
 ): FreeSlot | null {
   const json = wasm.findFirstFreeAcross(JSON.stringify(streams), windowStart, windowEnd, minDurationMinutes);
+  return JSON.parse(json);
+}
+
+// ---------------------------------------------------------------------------
+// Temporal computation types
+// ---------------------------------------------------------------------------
+
+export interface ConvertedDatetime {
+  utc: string;
+  local: string;
+  timezone: string;
+  utc_offset: string;
+  dst_active: boolean;
+}
+
+export interface DurationInfo {
+  total_seconds: number;
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  human_readable: string;
+}
+
+export interface AdjustedTimestamp {
+  original: string;
+  adjusted_utc: string;
+  adjusted_local: string;
+  adjustment_applied: string;
+}
+
+export interface ResolvedDatetime {
+  resolved_utc: string;
+  resolved_local: string;
+  timezone: string;
+  interpretation: string;
+}
+
+// ---------------------------------------------------------------------------
+// Temporal computation API
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert a datetime to a different timezone representation.
+ *
+ * @param datetime - RFC 3339 datetime string (e.g., "2026-03-15T14:00:00Z")
+ * @param targetTimezone - IANA timezone name (e.g., "America/New_York")
+ * @returns Conversion result with UTC, local, offset, and DST info
+ */
+export function convertTimezone(
+  datetime: string,
+  targetTimezone: string,
+): ConvertedDatetime {
+  const json = wasm.convertTimezone(datetime, targetTimezone);
+  return JSON.parse(json);
+}
+
+/**
+ * Compute the duration between two timestamps.
+ *
+ * @param start - RFC 3339 datetime string
+ * @param end - RFC 3339 datetime string
+ * @returns Duration decomposed into days, hours, minutes, seconds
+ */
+export function computeDuration(
+  start: string,
+  end: string,
+): DurationInfo {
+  const json = wasm.computeDuration(start, end);
+  return JSON.parse(json);
+}
+
+/**
+ * Adjust a timestamp by adding or subtracting a duration.
+ *
+ * @param datetime - RFC 3339 datetime string
+ * @param adjustment - Duration string (e.g., "+2h", "-30m", "+1d2h30m")
+ * @param timezone - IANA timezone for day-level adjustments across DST
+ * @returns Adjusted timestamp in UTC and local time
+ */
+export function adjustTimestamp(
+  datetime: string,
+  adjustment: string,
+  timezone: string,
+): AdjustedTimestamp {
+  const json = wasm.adjustTimestamp(datetime, adjustment, timezone);
+  return JSON.parse(json);
+}
+
+/**
+ * Resolve a relative time expression to an absolute datetime.
+ *
+ * @param anchor - RFC 3339 datetime string (the "now" reference point)
+ * @param expression - Time expression (e.g., "next Tuesday at 2pm", "tomorrow", "+3h")
+ * @param timezone - IANA timezone for interpreting local-time expressions
+ * @returns Resolved datetime in UTC and local time with interpretation
+ */
+export function resolveRelative(
+  anchor: string,
+  expression: string,
+  timezone: string,
+): ResolvedDatetime {
+  const json = wasm.resolveRelative(anchor, expression, timezone);
   return JSON.parse(json);
 }

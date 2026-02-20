@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { expandRRule, findConflicts, findFreeSlots, mergeAvailability, _resetHint } from "../src/index.js";
+import {
+  expandRRule, findConflicts, findFreeSlots, mergeAvailability, _resetHint,
+  convertTimezone, computeDuration, adjustTimestamp, resolveRelative,
+} from "../src/index.js";
 
 describe("expandRRule", () => {
   it("expands a daily rule with COUNT", () => {
@@ -132,5 +135,67 @@ describe("mergeAvailability hint", () => {
     mergeAvailability(streams, "2026-03-17T08:00:00+00:00", "2026-03-18T00:00:00+00:00");
     mergeAvailability(streams, "2026-03-17T08:00:00+00:00", "2026-03-18T00:00:00+00:00");
     expect(spy).toHaveBeenCalledOnce();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Temporal computation
+// ---------------------------------------------------------------------------
+
+describe("convertTimezone", () => {
+  it("converts UTC to Eastern", () => {
+    const result = convertTimezone("2026-03-15T14:00:00Z", "America/New_York");
+    expect(result.timezone).toBe("America/New_York");
+    expect(result.local).toContain("10:00:00");
+    expect(result.dst_active).toBe(true); // March = EDT
+  });
+
+  it("throws on invalid timezone", () => {
+    expect(() => convertTimezone("2026-03-15T14:00:00Z", "Invalid/Zone")).toThrow();
+  });
+});
+
+describe("computeDuration", () => {
+  it("computes 8-hour duration", () => {
+    const result = computeDuration("2026-03-16T09:00:00Z", "2026-03-16T17:00:00Z");
+    expect(result.total_seconds).toBe(28800);
+    expect(result.hours).toBe(8);
+    expect(result.days).toBe(0);
+  });
+
+  it("throws on invalid input", () => {
+    expect(() => computeDuration("not-a-date", "2026-03-16T17:00:00Z")).toThrow();
+  });
+});
+
+describe("adjustTimestamp", () => {
+  it("adds 2 hours", () => {
+    const result = adjustTimestamp("2026-03-16T10:00:00Z", "+2h", "UTC");
+    expect(result.adjusted_utc).toContain("12:00:00");
+    expect(result.adjustment_applied).toBe("+2h");
+  });
+
+  it("throws on invalid format", () => {
+    expect(() => adjustTimestamp("2026-03-16T10:00:00Z", "2h", "UTC")).toThrow();
+  });
+});
+
+describe("resolveRelative", () => {
+  const anchor = "2026-02-18T14:30:00+00:00"; // Wednesday
+
+  it("resolves 'tomorrow' to next day", () => {
+    const result = resolveRelative(anchor, "tomorrow", "UTC");
+    expect(result.resolved_utc).toContain("2026-02-19");
+    expect(result.resolved_utc).toContain("00:00:00");
+  });
+
+  it("resolves 'next Tuesday at 2pm'", () => {
+    const result = resolveRelative(anchor, "next Tuesday at 2pm", "UTC");
+    expect(result.resolved_utc).toContain("2026-02-24");
+    expect(result.resolved_utc).toContain("14:00:00");
+  });
+
+  it("throws on unparseable expression", () => {
+    expect(() => resolveRelative(anchor, "gobbledygook", "UTC")).toThrow();
   });
 });

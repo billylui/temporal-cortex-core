@@ -280,6 +280,92 @@ fn find_first_free_across(
     }
 }
 
+/// Convert a datetime to a different timezone representation.
+///
+/// Args:
+///     datetime: RFC 3339 datetime string (e.g., "2026-03-15T14:00:00Z").
+///     target_timezone: IANA timezone name (e.g., "America/New_York").
+///
+/// Returns:
+///     A JSON string with `{utc, local, timezone, utc_offset, dst_active}`.
+///
+/// Raises:
+///     ValueError: If the datetime or timezone is invalid.
+#[pyfunction]
+fn convert_timezone(datetime: &str, target_timezone: &str) -> PyResult<String> {
+    let result = truth_engine::temporal::convert_timezone(datetime, target_timezone)
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    serde_json::to_string(&result).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Compute the duration between two timestamps.
+///
+/// Args:
+///     start: RFC 3339 datetime string.
+///     end: RFC 3339 datetime string.
+///
+/// Returns:
+///     A JSON string with `{total_seconds, days, hours, minutes, seconds, human_readable}`.
+///
+/// Raises:
+///     ValueError: If either datetime is invalid.
+#[pyfunction]
+fn compute_duration(start: &str, end: &str) -> PyResult<String> {
+    let result = truth_engine::temporal::compute_duration(start, end)
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    serde_json::to_string(&result).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Adjust a timestamp by adding or subtracting a duration.
+///
+/// Args:
+///     datetime: RFC 3339 datetime string.
+///     adjustment: Duration string (e.g., "+2h", "-30m", "+1d2h30m").
+///     timezone: IANA timezone for day-level adjustments across DST.
+///
+/// Returns:
+///     A JSON string with `{original, adjusted_utc, adjusted_local, adjustment_applied}`.
+///
+/// Raises:
+///     ValueError: If the datetime, adjustment, or timezone is invalid.
+#[pyfunction]
+fn adjust_timestamp(datetime: &str, adjustment: &str, timezone: &str) -> PyResult<String> {
+    let result = truth_engine::temporal::adjust_timestamp(datetime, adjustment, timezone)
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    serde_json::to_string(&result).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Resolve a relative time expression to an absolute datetime.
+///
+/// Args:
+///     anchor: RFC 3339 datetime string (the "now" reference point).
+///     expression: Time expression (e.g., "next Tuesday at 2pm", "tomorrow", "+3h").
+///     timezone: IANA timezone for interpreting local-time expressions.
+///
+/// Returns:
+///     A JSON string with `{resolved_utc, resolved_local, timezone, interpretation}`.
+///
+/// Raises:
+///     ValueError: If the expression cannot be parsed or the timezone is invalid.
+#[pyfunction]
+fn resolve_relative(anchor: &str, expression: &str, timezone: &str) -> PyResult<String> {
+    use chrono::{DateTime, NaiveDateTime, Utc};
+
+    let anchor_dt = if let Ok(dt) = DateTime::parse_from_rfc3339(anchor) {
+        dt.with_timezone(&Utc)
+    } else {
+        NaiveDateTime::parse_from_str(anchor, "%Y-%m-%dT%H:%M:%S")
+            .map(|ndt| ndt.and_utc())
+            .map_err(|e| {
+                PyValueError::new_err(format!("Invalid anchor datetime '{}': {}", anchor, e))
+            })?
+    };
+
+    let result = truth_engine::temporal::resolve_relative(anchor_dt, expression, timezone)
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    serde_json::to_string(&result).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
 /// The native extension module, exposed as `temporal_cortex_toon._native`.
 /// The public Python API is in `python/temporal_cortex_toon/__init__.py`.
 #[pymodule]
@@ -290,5 +376,9 @@ fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(expand_rrule, m)?)?;
     m.add_function(wrap_pyfunction!(merge_availability, m)?)?;
     m.add_function(wrap_pyfunction!(find_first_free_across, m)?)?;
+    m.add_function(wrap_pyfunction!(convert_timezone, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_duration, m)?)?;
+    m.add_function(wrap_pyfunction!(adjust_timestamp, m)?)?;
+    m.add_function(wrap_pyfunction!(resolve_relative, m)?)?;
     Ok(())
 }

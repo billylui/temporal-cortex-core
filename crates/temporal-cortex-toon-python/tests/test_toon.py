@@ -10,7 +10,10 @@ import os
 
 import pytest
 
-from temporal_cortex_toon import decode, encode, expand_rrule, filter_and_encode
+from temporal_cortex_toon import (
+    decode, encode, expand_rrule, filter_and_encode,
+    convert_timezone, compute_duration, adjust_timestamp, resolve_relative,
+)
 import temporal_cortex_toon
 
 
@@ -323,3 +326,83 @@ class TestMergeAvailabilityHint:
             assert "tally.so" not in caplog.text
         finally:
             os.environ.pop("TEMPORAL_CORTEX_QUIET", None)
+
+
+# ---------------------------------------------------------------------------
+# convert_timezone
+# ---------------------------------------------------------------------------
+
+
+class TestConvertTimezone:
+    """Tests for timezone conversion."""
+
+    def test_convert_utc_to_eastern(self):
+        result = json.loads(convert_timezone("2026-03-15T14:00:00Z", "America/New_York"))
+        assert result["timezone"] == "America/New_York"
+        assert "10:00:00" in result["local"]
+        assert result["dst_active"] is True  # March = EDT
+
+    def test_convert_invalid_timezone_raises(self):
+        with pytest.raises(ValueError):
+            convert_timezone("2026-03-15T14:00:00Z", "Invalid/Zone")
+
+
+# ---------------------------------------------------------------------------
+# compute_duration
+# ---------------------------------------------------------------------------
+
+
+class TestComputeDuration:
+    """Tests for duration computation."""
+
+    def test_duration_8_hours(self):
+        result = json.loads(compute_duration("2026-03-16T09:00:00Z", "2026-03-16T17:00:00Z"))
+        assert result["total_seconds"] == 28800
+        assert result["hours"] == 8
+        assert result["days"] == 0
+
+    def test_duration_invalid_raises(self):
+        with pytest.raises(ValueError):
+            compute_duration("not-a-date", "2026-03-16T17:00:00Z")
+
+
+# ---------------------------------------------------------------------------
+# adjust_timestamp
+# ---------------------------------------------------------------------------
+
+
+class TestAdjustTimestamp:
+    """Tests for timestamp adjustment."""
+
+    def test_adjust_add_hours(self):
+        result = json.loads(adjust_timestamp("2026-03-16T10:00:00Z", "+2h", "UTC"))
+        assert "12:00:00" in result["adjusted_utc"]
+        assert result["adjustment_applied"] == "+2h"
+
+    def test_adjust_invalid_format_raises(self):
+        with pytest.raises(ValueError):
+            adjust_timestamp("2026-03-16T10:00:00Z", "2h", "UTC")
+
+
+# ---------------------------------------------------------------------------
+# resolve_relative
+# ---------------------------------------------------------------------------
+
+
+class TestResolveRelative:
+    """Tests for relative time expression resolution."""
+
+    def test_resolve_tomorrow(self):
+        # Anchor: Wed Feb 18, 2026 14:30 UTC
+        result = json.loads(resolve_relative("2026-02-18T14:30:00+00:00", "tomorrow", "UTC"))
+        assert "2026-02-19" in result["resolved_utc"]
+        assert "00:00:00" in result["resolved_utc"]
+
+    def test_resolve_next_tuesday_at_2pm(self):
+        result = json.loads(resolve_relative("2026-02-18T14:30:00+00:00", "next Tuesday at 2pm", "UTC"))
+        assert "2026-02-24" in result["resolved_utc"]
+        assert "14:00:00" in result["resolved_utc"]
+
+    def test_resolve_unparseable_raises(self):
+        with pytest.raises(ValueError):
+            resolve_relative("2026-02-18T14:30:00+00:00", "gobbledygook", "UTC")

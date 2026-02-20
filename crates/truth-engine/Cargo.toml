@@ -5,9 +5,9 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-description = "Deterministic RRULE expansion with DST handling for AI calendar agents"
+description = "Deterministic calendar computation for AI agents: RRULE expansion, availability merging, timezone conversion, and temporal resolution"
 readme = "README.md"
-keywords = ["rrule", "calendar", "icalendar", "recurrence", "dst"]
+keywords = ["rrule", "calendar", "timezone", "datetime", "availability"]
 categories = ["date-and-time"]
 
 [dependencies]

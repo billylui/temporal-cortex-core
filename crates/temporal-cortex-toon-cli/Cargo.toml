@@ -15,7 +15,7 @@ name = "toon"
 path = "src/main.rs"
 
 [dependencies]
-toon-core = { path = "../temporal-cortex-toon", version = "0.1.0", package = "temporal-cortex-toon" }
+toon-core = { path = "../temporal-cortex-toon", version = "0.2.0", package = "temporal-cortex-toon" }
 clap = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }

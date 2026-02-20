@@ -352,3 +352,68 @@ pub fn find_first_free_across(
         None => Ok("null".to_string()),
     }
 }
+
+// ---------------------------------------------------------------------------
+// Temporal computation WASM exports
+// ---------------------------------------------------------------------------
+
+/// Convert a datetime to a different timezone.
+///
+/// Returns a JSON string with `{utc, local, timezone, utc_offset, dst_active}`.
+#[wasm_bindgen(js_name = "convertTimezone")]
+pub fn convert_timezone(datetime: &str, target_timezone: &str) -> Result<String, JsValue> {
+    let result = truth_engine::temporal::convert_timezone(datetime, target_timezone)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    serde_json::to_string(&result)
+        .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+}
+
+/// Compute the duration between two timestamps.
+///
+/// Returns a JSON string with `{total_seconds, days, hours, minutes, seconds, human_readable}`.
+#[wasm_bindgen(js_name = "computeDuration")]
+pub fn compute_duration(start: &str, end: &str) -> Result<String, JsValue> {
+    let result = truth_engine::temporal::compute_duration(start, end)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    serde_json::to_string(&result)
+        .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+}
+
+/// Adjust a timestamp by a duration string.
+///
+/// `adjustment` format: `+2h`, `-30m`, `+1d2h30m`, `+1w`, etc.
+/// `timezone` is an IANA timezone for day-level adjustments across DST.
+///
+/// Returns a JSON string with `{original, adjusted_utc, adjusted_local, adjustment_applied}`.
+#[wasm_bindgen(js_name = "adjustTimestamp")]
+pub fn adjust_timestamp(
+    datetime: &str,
+    adjustment: &str,
+    timezone: &str,
+) -> Result<String, JsValue> {
+    let result = truth_engine::temporal::adjust_timestamp(datetime, adjustment, timezone)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    serde_json::to_string(&result)
+        .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+}
+
+/// Resolve a relative time expression to an absolute datetime.
+///
+/// `anchor` is an RFC 3339 datetime (the "now" reference point).
+/// `expression` is a time expression (e.g., "next Tuesday at 2pm", "tomorrow", "+3h").
+/// `timezone` is an IANA timezone for interpreting local-time expressions.
+///
+/// Returns a JSON string with `{resolved_utc, resolved_local, timezone, interpretation}`.
+#[wasm_bindgen(js_name = "resolveRelative")]
+pub fn resolve_relative(anchor: &str, expression: &str, timezone: &str) -> Result<String, JsValue> {
+    let anchor_dt = parse_datetime(anchor)?;
+
+    let result = truth_engine::temporal::resolve_relative(anchor_dt, expression, timezone)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    serde_json::to_string(&result)
+        .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+}
