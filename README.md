@@ -314,6 +314,11 @@ pytest tests/ -v
 
 This project follows strict TDD (Red-Green-Refactor). No production code without a corresponding test.
 
+## Ecosystem
+
+- **[temporal-cortex-mcp](https://github.com/billylui/temporal-cortex-mcp)** — MCP server (11 tools, 4 layers) powered by Truth Engine and TOON
+- **[temporal-cortex-skill](https://github.com/billylui/temporal-cortex-skill)** — Agent Skill that teaches AI agents the scheduling workflow
+
 ## Contributing
 
 Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, testing, and PR guidelines.
